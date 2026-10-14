@@ -27,3 +27,33 @@ output "nat_gateway_id" {
   description = "ID del NAT Gateway"
   value       = module.networking.nat_gateway_id
 }
+
+output "process_endpoint" {
+  description = "Endpoint completo de POST /process"
+  value       = module.communication.process_endpoint
+}
+
+output "lambda_function_name" {
+  description = "Nombre de la funcion Lambda"
+  value       = module.logic.function_name
+}
+
+output "lambda_role_arn" {
+  description = "ARN del rol de ejecucion de la Lambda"
+  value       = module.logic.role_arn
+}
+
+output "redis_endpoint_address" {
+  description = "Direccion del endpoint de Redis"
+  value       = module.cache.redis_endpoint_address
+}
+
+output "redis_endpoint_port" {
+  description = "Puerto del endpoint de Redis"
+  value       = module.cache.redis_endpoint_port
+}
+
+output "s3_results_bucket_name" {
+  description = "Nombre del bucket S3 de resultados"
+  value       = module.storage.bucket_name
+}

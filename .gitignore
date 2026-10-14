@@ -50,3 +50,6 @@ terraform.rc
 *.pdf
 .opencode
 .env
+
+# Artefactos de build de Lambdas (binario bootstrap y zip)
+lambda/*/build/

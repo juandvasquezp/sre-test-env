@@ -20,6 +20,7 @@
         buildInputs = [
           pkgs.terraform
           pkgs.awscli2
+          pkgs.go
           pkgs.jq
           pkgs.opencode
 	];
@@ -28,6 +29,7 @@
           echo "Entorno listo con Terraform y AWS CLI"
           echo "Versión de Terraform: $(terraform version -json | jq -r '.terraform_version')"
           echo "Versión de AWS CLI: $(aws --version | awk '{print $1}')"
+          echo "Versión de Go: $(go version | awk '{print $3}')"
         '';
       };
     };

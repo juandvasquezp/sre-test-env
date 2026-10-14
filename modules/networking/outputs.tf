@@ -52,3 +52,18 @@ output "private_route_table_id" {
   description = "ID de la route table privada"
   value       = aws_route_table.private.id
 }
+
+output "s3_vpc_endpoint_id" {
+  description = "ID del VPC Endpoint Gateway para S3"
+  value       = aws_vpc_endpoint.s3_gateway.id
+}
+
+output "lambda_security_group_id" {
+  description = "ID del security group de la Lambda"
+  value       = aws_security_group.lambda.id
+}
+
+output "redis_security_group_id" {
+  description = "ID del security group de Redis"
+  value       = aws_security_group.redis.id
+}
