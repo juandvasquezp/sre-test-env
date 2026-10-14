@@ -1,3 +1,8 @@
+#############################################
+# NAT Gateway
+#############################################
+
+# Elastic IP para el NAT Gateway
 resource "aws_eip" "nat_gateway_eip" {
   domain = "vpc"
 
@@ -14,5 +19,5 @@ resource "aws_nat_gateway" "nat_gateway" {
     Name = "${var.name_prefix}-nat"
   })
 
-  depends_on = [aws_internet_gateway.this]
+  depends_on = [aws_internet_gateway.internet_gateway]
 }

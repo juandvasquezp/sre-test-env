@@ -1,11 +1,11 @@
 output "vpc_id" {
   description = "ID de la VPC"
-  value       = aws_vpc.this.id
+  value       = aws_vpc.main_vpc.id
 }
 
 output "vpc_cidr_block" {
   description = "Bloque CIDR IPv4 de la VPC"
-  value       = aws_vpc.this.cidr_block
+  value       = aws_vpc.main_vpc.cidr_block
 }
 
 output "public_subnet_ids" {
@@ -30,17 +30,17 @@ output "private_subnet_cidrs" {
 
 output "internet_gateway_id" {
   description = "ID del Internet Gateway"
-  value       = aws_internet_gateway.this.id
+  value       = aws_internet_gateway.internet_gateway.id
 }
 
 output "nat_gateway_id" {
   description = "ID del NAT Gateway"
-  value       = aws_nat_gateway.this.id
+  value       = aws_nat_gateway.nat_gateway.id
 }
 
 output "nat_gateway_public_ip" {
   description = "IP elastica publica del NAT Gateway"
-  value       = aws_eip.nat.public_ip
+  value       = aws_eip.nat_gateway_eip.public_ip
 }
 
 output "public_route_table_id" {
