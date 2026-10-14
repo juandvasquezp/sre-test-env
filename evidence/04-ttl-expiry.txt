@@ -1,0 +1,16 @@
+Evidencia: TTL de 60s expirado, la misma peticion vuelve a ser cache miss
+Fecha: 2026-10-14 23:49:34 UTC
+Endpoint: https://0dtndufx1g.execute-api.us-east-1.amazonaws.com/dev/process
+Comando: sleep 65 && curl -s -X POST "$ENDPOINT" -H 'Content-Type: application/json' -d '{"input":"evidencia sre-interview readme"}' -D -
+
+HTTP/2 200 
+date: Wed, 14 Oct 2026 23:49:35 GMT
+content-type: application/json
+content-length: 138
+x-amzn-requestid: 3d507d03-2de1-44b7-9b7f-7ff1b086cbbd
+access-control-allow-origin: *
+x-cache: MISS
+x-amz-apigw-id: FQg6cFgOoAMEMig=
+x-amzn-trace-id: Root=1-6ad0150f-04b053b87325d0d53b244992;Parent=1fadfdce02d7386a;Sampled=0;Lineage=1:a3aac6c7:0
+
+{"cache_key":"c0a4994845419452d443927d56b194bf83ed8aa0ef0a3b7f9033d19ea7562ed4","result":"}\"emdaer weivretni-ers aicnedive\":\"tupni\"{"}

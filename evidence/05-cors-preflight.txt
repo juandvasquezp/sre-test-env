@@ -1,0 +1,13 @@
+Evidencia: preflight CORS (OPTIONS)
+Fecha: 2026-10-14 23:48:10 UTC
+Endpoint: https://0dtndufx1g.execute-api.us-east-1.amazonaws.com/dev/process
+Comando: curl -s -X OPTIONS "$ENDPOINT" -H 'Origin: https://ejemplo.com' -H 'Access-Control-Request-Method: POST' -D - -o /dev/null
+
+HTTP/2 204 
+date: Wed, 14 Oct 2026 23:48:14 GMT
+x-amzn-requestid: 74cf61d0-0cc4-4d58-b600-49abea3455fa
+access-control-allow-origin: *
+access-control-allow-headers: Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Requested-With
+x-amz-apigw-id: FQgt6HLfoAMEdfw=
+access-control-allow-methods: POST,OPTIONS
+

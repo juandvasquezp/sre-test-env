@@ -1,0 +1,16 @@
+Evidencia: primera llamada al endpoint (cache miss)
+Fecha: 2026-10-14 23:48:10 UTC
+Endpoint: https://0dtndufx1g.execute-api.us-east-1.amazonaws.com/dev/process
+Comando: curl -s -X POST "$ENDPOINT" -H 'Content-Type: application/json' -d '{"input":"evidencia sre-interview readme"}' -D -
+
+HTTP/2 200 
+date: Wed, 14 Oct 2026 23:48:12 GMT
+content-type: application/json
+content-length: 138
+x-amzn-requestid: bb5777f3-7acd-4c11-bb29-6ed0948defd5
+access-control-allow-origin: *
+x-cache: MISS
+x-amz-apigw-id: FQgtRHZnIAMEVjA=
+x-amzn-trace-id: Root=1-6ad014ba-6f70f9033e7c51dc52da4d8e;Parent=788d16abe9ed37a0;Sampled=0;Lineage=1:a3aac6c7:0
+
+{"cache_key":"c0a4994845419452d443927d56b194bf83ed8aa0ef0a3b7f9033d19ea7562ed4","result":"}\"emdaer weivretni-ers aicnedive\":\"tupni\"{"}

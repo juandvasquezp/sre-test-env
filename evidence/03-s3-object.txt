@@ -1,0 +1,9 @@
+Evidencia: objeto persistido en S3 bajo results/
+Fecha: 2026-10-14 23:48:10 UTC
+Comando: aws s3 ls "s3://sre-interview-dev-results-194722434715/results/" --recursive --human-readable --summarize --profile personal
+
+2026-10-14 16:56:37  118 Bytes results/2026-10-14/a1027a48c6eb523e7cbafb2731b33f02098e7c8a5bc22a5122740464738c1d63.json
+2026-10-14 18:48:13  138 Bytes results/2026-10-14/c0a4994845419452d443927d56b194bf83ed8aa0ef0a3b7f9033d19ea7562ed4.json
+
+Total Objects: 2
+   Total Size: 256 Bytes

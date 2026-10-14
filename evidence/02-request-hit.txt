@@ -1,0 +1,16 @@
+Evidencia: misma peticion repetida (cache hit)
+Fecha: 2026-10-14 23:48:10 UTC
+Endpoint: https://0dtndufx1g.execute-api.us-east-1.amazonaws.com/dev/process
+Comando: curl -s -X POST "$ENDPOINT" -H 'Content-Type: application/json' -d '{"input":"evidencia sre-interview readme"}' -D -
+
+HTTP/2 200 
+date: Wed, 14 Oct 2026 23:48:13 GMT
+content-type: application/json
+content-length: 138
+x-amzn-requestid: 6674ded1-3633-4749-9e2d-70f5518701e5
+access-control-allow-origin: *
+x-cache: HIT
+x-amz-apigw-id: FQgtoGFHIAMEvIQ=
+x-amzn-trace-id: Root=1-6ad014bd-1cd495a9397c884209460f42;Parent=71b10ad3399cb9df;Sampled=0;Lineage=1:a3aac6c7:0
+
+{"cache_key":"c0a4994845419452d443927d56b194bf83ed8aa0ef0a3b7f9033d19ea7562ed4","result":"}\"emdaer weivretni-ers aicnedive\":\"tupni\"{"}
