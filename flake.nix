@@ -22,7 +22,7 @@
           pkgs.awscli2
           pkgs.go
           pkgs.jq
-          pkgs.opencode
+          # pkgs.opencode# # Omitido porque no es necesario para este entorno
 	];
 
         shellHook = ''
