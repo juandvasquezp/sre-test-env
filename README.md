@@ -60,7 +60,7 @@ flowchart LR
 4. Consulta Redis:
    - **HIT** → responde `200` con header `X-Cache: HIT` (típicamente ~2 ms).
    - **MISS** → procesa el request (inversión del texto), guarda el resultado en S3 bajo `results/<fecha>/<id>.json`, escribe en Redis con TTL de 60 s y responde `200` con `X-Cache: MISS`.
-5. Cualquier error se registra en CloudWatch (formato JSON) y retorna `500` con un mensaje descriptivo.
+5. Cualquier error se registra en CloudWatch (formato JSON) y retorna `500` con un mensaje descriptivo y header `X-Cache: MISS` (el header está presente en todas las respuestas).
 
 ## Requisitos
 
@@ -74,9 +74,9 @@ Herramientas obligatorias:
 
 Cuenta y permisos AWS:
 
-- Perfil de AWS configurado (variable `aws_profile`, default `personal`, o `AWS_PROFILE`).
+- Credenciales AWS configuradas por cualquiera de las vías estándar: variable `AWS_PROFILE`, variables de entorno o perfil `default`. Alternativamente, fija tu perfil con la variable `aws_profile` en `terraform.tfvars` (por defecto es `null` y se usa la cadena de credenciales estándar).
 - Permisos sobre: EC2 (VPC, subnets, security groups, endpoints, NAT), IAM (roles y políticas), Lambda, API Gateway, ElastiCache, S3, CloudWatch Logs y STS.
-- Región por defecto: `us-east-1` (variable `aws_region`).
+- Región por defecto: `us-east-1` (variable `aws_region`). Si la cambias, ajusta las AZs de `public_subnet_cidrs` / `private_subnet_cidrs` en `terraform.tfvars`.
 
 ### Entorno reproducible con Nix (opcional)
 
@@ -89,6 +89,9 @@ nix develop
 ## Despliegue desde cero
 
 ```bash
+# (Opcional) ajusta region, perfil AWS, entorno o diseño de red
+cp terraform.tfvars.example terraform.tfvars
+
 terraform init
 terraform plan
 terraform apply

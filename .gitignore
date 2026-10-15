@@ -52,4 +52,4 @@ terraform.rc
 .env
 
 # Artefactos de build de Lambdas (binario bootstrap y zip)
-lambda/*/build/
+lambda/**/build/

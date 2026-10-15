@@ -163,7 +163,7 @@ func process(ctx context.Context, request events.APIGatewayProxyRequest) (events
 func internalServerError(message string) (events.APIGatewayProxyResponse, error) {
 	logger.Error("error procesando la peticion", "error", message)
 
-	response, err := jsonResponse(http.StatusInternalServerError, nil, errorResponse{Error: message})
+	response, err := jsonResponse(http.StatusInternalServerError, map[string]string{"X-Cache": "MISS"}, errorResponse{Error: message})
 	if err != nil {
 		logger.Error("error serializando la respuesta de error", "error", err)
 		return events.APIGatewayProxyResponse{
@@ -171,6 +171,7 @@ func internalServerError(message string) (events.APIGatewayProxyResponse, error)
 			Headers: map[string]string{
 				"Content-Type":                "application/json",
 				"Access-Control-Allow-Origin": "*",
+				"X-Cache":                     "MISS",
 			},
 			Body: `{"error":"error interno del servidor"}`,
 		}, nil

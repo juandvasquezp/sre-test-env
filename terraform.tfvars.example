@@ -1,0 +1,26 @@
+# Copia este archivo a terraform.tfvars y ajusta lo que necesites:
+#   cp terraform.tfvars.example terraform.tfvars
+# Todos los valores tienen defaults funcionales; solo sobrescribe lo que difiera.
+
+# Region de despliegue
+aws_region = "us-east-1"
+
+# Perfil de AWS CLI. En null (default) se usa la cadena de credenciales
+# estandar: AWS_PROFILE, variables de entorno o perfil "default".
+# aws_profile = "personal"
+
+# Nombres y entorno (dev | staging | prod)
+project_name = "sre-interview"
+environment   = "dev"
+
+# Diseno de red. Si cambias aws_region, ajusta las AZs de los mapas
+# a las zonas de disponibilidad de la nueva region.
+# vpc_cidr = "10.0.0.0/16"
+# public_subnet_cidrs = {
+#   "us-east-1a" = "10.0.1.0/24"
+#   "us-east-1b" = "10.0.2.0/24"
+# }
+# private_subnet_cidrs = {
+#   "us-east-1a" = "10.0.3.0/24"
+#   "us-east-1b" = "10.0.4.0/24"
+# }
