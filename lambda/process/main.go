@@ -21,18 +21,23 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const cacheTTL = 60 * time.Second
+const (
+	cacheTTL       = 60 * time.Second
+	requestTimeout = 5 * time.Second
+)
 
 var (
-	logger      = slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	redisClient *redis.Client
-	s3Client    *s3.Client
-	s3Bucket    string
+	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	deps   dependencies
 )
 
 func init() {
-	redisClient = redis.NewClient(&redis.Options{
-		Addr: fmt.Sprintf("%s:%s", os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PORT")),
+	redisClient := redis.NewClient(&redis.Options{
+		Addr:         fmt.Sprintf("%s:%s", os.Getenv("REDIS_ADDR"), os.Getenv("REDIS_PORT")),
+		DialTimeout:  2 * time.Second,
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 2 * time.Second,
+		MaxRetries:   2,
 	})
 
 	awsConfig, err := awsconfig.LoadDefaultConfig(context.Background())
@@ -41,8 +46,51 @@ func init() {
 		os.Exit(1)
 	}
 
-	s3Client = s3.NewFromConfig(awsConfig)
-	s3Bucket = os.Getenv("S3_BUCKET")
+	deps = dependencies{
+		cache: redisBackend{client: redisClient},
+		store: s3Backend{client: s3.NewFromConfig(awsConfig), bucket: os.Getenv("S3_BUCKET")},
+	}
+}
+
+type dependencies struct {
+	cache cacheBackend
+	store resultsStore
+}
+
+type cacheBackend interface {
+	get(ctx context.Context, key string) (string, error)
+	setEx(ctx context.Context, key string, value string, ttl time.Duration) error
+}
+
+type redisBackend struct {
+	client *redis.Client
+}
+
+func (b redisBackend) get(ctx context.Context, key string) (string, error) {
+	return b.client.Get(ctx, key).Result()
+}
+
+func (b redisBackend) setEx(ctx context.Context, key string, value string, ttl time.Duration) error {
+	return b.client.SetEx(ctx, key, value, ttl).Err()
+}
+
+type resultsStore interface {
+	put(ctx context.Context, objectKey string, payload []byte) error
+}
+
+type s3Backend struct {
+	client *s3.Client
+	bucket string
+}
+
+func (b s3Backend) put(ctx context.Context, objectKey string, payload []byte) error {
+	_, err := b.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(b.bucket),
+		Key:         aws.String(objectKey),
+		Body:        bytes.NewReader(payload),
+		ContentType: aws.String("application/json"),
+	})
+	return err
 }
 
 type processResponse struct {
@@ -95,8 +143,8 @@ func jsonResponse(status int, headers map[string]string, payload any) (events.AP
 	}, nil
 }
 
-func cachedValue(ctx context.Context, key string) (string, bool, error) {
-	cached, err := redisClient.Get(ctx, key).Result()
+func cachedValue(ctx context.Context, backend cacheBackend, key string) (string, bool, error) {
+	cached, err := backend.get(ctx, key)
 	if err == nil {
 		return cached, true, nil
 	}
@@ -106,7 +154,7 @@ func cachedValue(ctx context.Context, key string) (string, bool, error) {
 	return "", false, fmt.Errorf("consultando Redis: %w", err)
 }
 
-func cacheMiss(ctx context.Context, key string, input string) (events.APIGatewayProxyResponse, error) {
+func cacheMiss(ctx context.Context, d dependencies, key string, input string) (events.APIGatewayProxyResponse, error) {
 	payload := processResponse{
 		CacheKey: key,
 		Result:   reverse(input),
@@ -118,17 +166,11 @@ func cacheMiss(ctx context.Context, key string, input string) (events.APIGateway
 	}
 
 	objectKey := fmt.Sprintf("results/%s/%s.json", time.Now().UTC().Format("2006-01-02"), key)
-	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:      aws.String(s3Bucket),
-		Key:         aws.String(objectKey),
-		Body:        bytes.NewReader(payloadJSON),
-		ContentType: aws.String("application/json"),
-	})
-	if err != nil {
+	if err := d.store.put(ctx, objectKey, payloadJSON); err != nil {
 		return internalServerError(fmt.Sprintf("error guardando el resultado en S3: %v", err))
 	}
 
-	if err := redisClient.SetEx(ctx, key, payloadJSON, cacheTTL).Err(); err != nil {
+	if err := d.cache.setEx(ctx, key, string(payloadJSON), cacheTTL); err != nil {
 		return internalServerError(fmt.Sprintf("error escribiendo en Redis: %v", err))
 	}
 
@@ -140,11 +182,11 @@ func cacheMiss(ctx context.Context, key string, input string) (events.APIGateway
 	return response, nil
 }
 
-func process(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func process(ctx context.Context, d dependencies, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	input := requestInput(request)
 	key := cacheKey(input)
 
-	cached, found, err := cachedValue(ctx, key)
+	cached, found, err := cachedValue(ctx, d.cache, key)
 	if err != nil {
 		return internalServerError(fmt.Sprintf("error %v", err))
 	}
@@ -157,7 +199,7 @@ func process(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return response, nil
 	}
 
-	return cacheMiss(ctx, key, input)
+	return cacheMiss(ctx, d, key, input)
 }
 
 func internalServerError(message string) (events.APIGatewayProxyResponse, error) {
@@ -187,7 +229,10 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (respon
 		}
 	}()
 
-	return process(ctx, request)
+	ctx, cancel := context.WithTimeout(ctx, requestTimeout)
+	defer cancel()
+
+	return process(ctx, deps, request)
 }
 
 func main() {

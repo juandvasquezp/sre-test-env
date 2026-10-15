@@ -100,6 +100,7 @@ terraform apply
 Notas del despliegue:
 
 - El build de la Lambda es automático: un `null_resource` compila el binario (`GOOS=linux GOARCH=arm64 CGO_ENABLED=0 go build -o bootstrap`) y `archive_file` lo empaqueta. Cualquier cambio en `main.go`, `go.mod` o `go.sum` dispara rebuild y redeploy de la función.
+- Tests unitarios de la Lambda (fakes de Redis/S3, sin conexiones reales): `cd lambda/process && go test ./...`
 - El primer `apply` tarda ~10 minutos; ElastiCache y el NAT Gateway son los recursos más lentos.
 - El state es local (`terraform.tfstate`). Para un entorno real conviene un backend remoto (S3) con locking (DynamoDB).
 
