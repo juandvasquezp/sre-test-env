@@ -2,39 +2,28 @@
 
 API serverless que expone `POST /process`: una Lambda escrita en Go, desplegada dentro de una VPC en subnets privadas, consulta Redis como capa de caché (TTL de 60 s) y persiste los resultados en S3 a través de un VPC Endpoint Gateway, sin que el tráfico salga a internet. Toda la infraestructura está definida como código con Terraform.
 
-## Arquitectura
+## Arquitectura — vista C&C (componentes y conectores)
+
+Vista runtime del estilo C&C: los componentes son entidades que procesan durante la ejecución y los conectores, los mecanismos de interacción entre ellos.
 
 ```mermaid
-flowchart LR
-    client["Cliente"] -->|"POST /process"| apigw["API Gateway REST API<br/>throttling 100 rps / burst 200<br/>CORS * · access logs JSON"]
-    apigw -->|"AWS_PROXY"| lambda["Lambda Go arm64<br/>provided.al2023 · 128 MB"]
+flowchart TB
+    cliente["Cliente HTTP (externo)"]
+    apigw["API Gateway REST API<br/>stage dev · throttling · CORS"]
+    lambda["Lambda process<br/>Go · arm64"]
+    redis["ElastiCache Redis<br/>cache.t4g.micro"]
+    s3["S3 bucket results"]
+    cw["CloudWatch Logs"]
 
-    lambda -->|"GET · SETEX TTL 60s · puerto 6379"| redis["ElastiCache Redis<br/>cache.t4g.micro · single-node"]
-    lambda -->|"PutObject 443 · prefix list S3"| vpce["VPC Endpoint Gateway S3"]
-    vpce --> s3["Bucket S3<br/>results/&lt;fecha&gt;/&lt;id&gt;.json"]
-
-    lambda -.->|"logs JSON"| cw_lambda["CloudWatch Logs"]
-    apigw -.->|"access logs"| cw_apigw["CloudWatch Logs"]
-
-    subgraph vpc["VPC 10.0.0.0/16"]
-        subgraph private["Subnets privadas · us-east-1a / us-east-1b"]
-            lambda
-            redis
-        end
-        subgraph public["Subnets públicas · us-east-1a / us-east-1b"]
-            nat["NAT Gateway"]
-        end
-        igw["Internet Gateway"]
-        vpce
-        sg_lambda["SG lambda · egress: 6379 → SG redis, 443 → prefix list S3"]
-        sg_redis["SG redis · ingress: 6379 ← SG lambda"]
-    end
-
-    lambda -.- sg_lambda
-    redis -.- sg_redis
+    cliente <-->|"HTTPS · request/reply<br/>POST /process"| apigw
+    apigw <-->|"AWS_PROXY · call/return"| lambda
+    lambda <-->|"RESP :6379 · call/return<br/>GET · SETEX (TTL 60s)"| redis
+    lambda <-->|"HTTPS :443 · call/return<br/>PutObject (vía VPC Endpoint)"| s3
+    lambda -->|"log events · JSON"| cw
+    apigw -->|"access logs · JSON"| cw
 ```
 
-**Segmentación de red** (todo dentro de la VPC):
+**Segmentación de red** (vista de despliegue):
 
 - La Lambda solo puede salir al puerto 6379 hacia el SG de Redis y al 443 hacia el prefix list de S3 (Gateway Endpoint). Ningún otro egress.
 - Redis solo acepta conexiones en 6379 desde el SG de la Lambda.
